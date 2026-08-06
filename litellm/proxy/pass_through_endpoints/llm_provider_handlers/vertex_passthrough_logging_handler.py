@@ -48,7 +48,7 @@ def _optional_str(value: object) -> str | None:
 def _optional_str_tuple(value: object) -> tuple[str, ...] | None:
     if not isinstance(value, list):
         return None
-    items = cast(list[object], value)  # cast-ok: isinstance-narrowed; element type unknown
+    items: Final = cast(list[object], value)  # cast-ok: isinstance-narrowed; element type unknown
     return tuple(tag for tag in items if isinstance(tag, str))
 
 
@@ -58,10 +58,10 @@ def _request_tags(request_metadata: Mapping[str, object]) -> tuple[str, ...] | N
     tagged key does not put its tags in the top-level metadata "tags" on the
     passthrough path)
     """
-    tags = _optional_str_tuple(request_metadata.get("tags"))
+    tags: Final = _optional_str_tuple(request_metadata.get("tags"))
     if tags:
         return tags
-    key_auth_metadata = request_metadata.get("user_api_key_auth_metadata")
+    key_auth_metadata: Final = request_metadata.get("user_api_key_auth_metadata")
     if isinstance(key_auth_metadata, dict):
         return _optional_str_tuple(key_auth_metadata.get("tags"))
     return None
@@ -685,7 +685,7 @@ class VertexPassthroughLoggingHandler:
 
                 # Store the managed object for cost tracking
                 # This will be picked up by check_batch_cost polling mechanism
-                is_batch_create = url_route.split("?")[0].rstrip("/").endswith("batchPredictionJobs")
+                is_batch_create: Final = url_route.split("?")[0].rstrip("/").endswith("batchPredictionJobs")
                 if is_batch_create:
                     VertexPassthroughLoggingHandler._store_batch_managed_object(
                         unified_object_id=unified_object_id,
@@ -811,7 +811,7 @@ class VertexPassthroughLoggingHandler:
 
     @staticmethod
     def _log_batch_registration_result(finished: asyncio.Task, unified_object_id: str, model_object_id: str) -> None:
-        error = finished.exception() if not finished.cancelled() else None
+        error: Final = finished.exception() if not finished.cancelled() else None
         if finished.cancelled() or error is not None:
             verbose_proxy_logger.error(
                 f"Failed to store batch managed object with unified_object_id={unified_object_id}, "
@@ -873,8 +873,8 @@ class VertexPassthroughLoggingHandler:
                 )
 
                 # Store the unified object for batch cost tracking
-                task = asyncio.create_task(
-                    managed_files_hook.store_unified_object_id(  # type: ignore
+                task: Final = asyncio.create_task(
+                    managed_files_hook.store_unified_object_id(
                         unified_object_id=unified_object_id,
                         file_object=batch_object,
                         litellm_parent_otel_span=None,
